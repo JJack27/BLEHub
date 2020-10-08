@@ -25,12 +25,15 @@ print("Waiting for connection on RFCOMM channel", port)
 
 client_sock, client_info = server_sock.accept()
 print("Accepted connection from", client_info)
-
+with open("./clientInfo.txt", 'w') as f:
+    f.write(str(client_info))
 try:
     while True:
         data = client_sock.recv(1024)
         if not data:
             break
+        with open('./receivedData.txt', 'a') as f:
+            f.write(str(data) + '\n')
         print("Received", data)
 except OSError:
     pass
