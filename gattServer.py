@@ -10,14 +10,12 @@ def connectDevice(macAddr):
         while True:
             # should receiving data
             pass
-    except:
-        adapter.stop()
     finally:
         adapter.stop()
 
 def main():
     # find all devices that are matching with mac address pattern
     adapterScan = pygatt.GATTToolBackend()
-    print(adapterScan.scan())
+    devices = adapterScan.scan()
 
 main()
