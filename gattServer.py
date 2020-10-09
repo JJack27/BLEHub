@@ -18,4 +18,6 @@ def connectDevice(macAddr):
 def main():
     # find all devices that are matching with mac address pattern
     adapterScan = pygatt.GATTToolBackend()
-    print(adapterScan.scan)
+    print(adapterScan.scan())
+
+main()
