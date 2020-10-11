@@ -8,11 +8,21 @@ Gateway that responsible for:
     - Keep tracking MAC address and raised subprocesses
 '''
 class Gateway:
-
+    # Constructor of the Gateway
+    # Arguments:
+    #   - sub_proc: the subprocess to raise when new devices connected
+    # Return:
+    #   - Gateway
     def __init__(self, sub_proc):
         # maps mac address to pid of sub-process
+        # with the format: {mac_address: pid}
         self._mac_proc_table = {}
-    
+
+        # Scanner for discovering devices
+        self._scanner = pygatt.GATTollBackend()
+        
+        # the sub-process function to raise when new deveice connected 
+        self._sub_proc = sub_proc
 
     # validate if the given mac address is a bracelet
     # Arugments:
@@ -53,4 +63,18 @@ class Gateway:
         for addr in self._mac_proc_table.keys():
             print(addr)
         return self._mac_proc_table.keys()
+    
+    # Scanning and return all nearby devices
+    # Arguments:
+    #   - None
+    # Returns:
+    #   - List<dictionary>
+    def scan(self):
+        return self._scanner.scan()
 
+
+    # The interface to start running the gateway
+    # - Constantly discover the new devices
+    # - update the self.mac_proc_table
+    def run(self):
+        pass
