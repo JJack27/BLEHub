@@ -13,7 +13,7 @@ class Gateway:
     #   - sub_proc: the subprocess to raise when new devices connected
     # Return:
     #   - Gateway
-    def __init__(self, sub_proc):
+    def __init__(self, sub_proc, debug=False):
         # maps mac address to pid of sub-process
         # with the format: {mac_address: pid}
         self._mac_proc_table = {}
@@ -23,6 +23,8 @@ class Gateway:
         
         # the sub-process function to raise when new deveice connected 
         self._sub_proc = sub_proc
+
+        self._debug = debug
 
     # validate if the given mac address is a bracelet
     # Arugments:
@@ -38,7 +40,7 @@ class Gateway:
     #   'name':}
     # return:
     #   - None
-    def update_mac_table(self, mac_addrs):
+    def _update_mac_table(self, mac_addrs):
         mac_addr_list = [i['address'] for i in mac_addrs]
         # remove old bracelets
         for mac_addr in self._mac_proc_table.keys():
@@ -60,10 +62,23 @@ class Gateway:
     # Return:
     #   - list
     def getConnectedDevice(self):
-        for addr in self._mac_proc_table.keys():
-            print(addr)
+        if(self._debug):
+            for addr in self._mac_proc_table.keys():
+                print(addr)
         return self._mac_proc_table.keys()
     
+    # Print and return the self._mac_proc_table
+    # Arguments:
+    #   - None
+    # Return:
+    #   - Dict
+    def getMacProTable(self):
+        if(self._debug):
+            for addr, pid in self._mac_proc_table.items():
+                print("%s %s"%(addr, pid))
+        return self._mac_proc_table
+
+
     # Scanning and return all nearby devices
     # Arguments:
     #   - None
@@ -77,4 +92,6 @@ class Gateway:
     # - Constantly discover the new devices
     # - update the self.mac_proc_table
     def run(self):
-        pass
+        while True:
+            devices = self.scan()
+            self._update_mac_table(self, devices)
