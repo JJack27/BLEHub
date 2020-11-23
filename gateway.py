@@ -19,7 +19,7 @@ class Gateway:
         self._mac_proc_table = {}
 
         # Scanner for discovering devices
-        self._scanner = pygatt.GATTollBackend()
+        self._scanner = pygatt.GATTToolBackend()
         
         # the sub-process function to raise when new deveice connected 
         self._sub_proc = sub_proc
@@ -32,7 +32,9 @@ class Gateway:
     # Return:
     #   - bool
     def _validate_mac_addr(self, mac_addr):
-        pass
+        test_mac_addr = ['c7:36:e0:31:ab:ae']
+        if (self._debug and mac_addr.lower() in test_mac_addr):
+            return True
 
     # update self._mac_proc_table
     # arguments:
@@ -49,12 +51,13 @@ class Gateway:
                 pass
 
         # add new bracelet 
-        for mac_addr in mac_addrs:
+        for mac_addr in mac_addr_list:
             valid_addr = self._validate_mac_addr(mac_addr)
             # new bracelet that haven't been detected yet.
             if valid_addr and mac_addr not in self._mac_proc_table.keys():
                 # raise a sub-process to receive the bluetooth data
-                pass
+                print(mac_addr)
+                
     
     # Print and return the list of mac address of connected devices
     # Arguments:
@@ -93,5 +96,10 @@ class Gateway:
     # - update the self.mac_proc_table
     def run(self):
         while True:
+            if(self._debug):
+                print("Scanning...")
+                self.getMacProTable()
             devices = self.scan()
-            self._update_mac_table(self, devices)
+            if(self._debug):
+                print("found %d devices" % len(devices))
+            self._update_mac_table(devices)
