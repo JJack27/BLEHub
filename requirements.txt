@@ -1,4 +1,5 @@
 vext==^0.7.4
 vext.gi=^0.7.4
 gatt==^0.2.7
-dbus-python=1.2.16
+dbus-python==1.2.16
+psutil==5.8.0
