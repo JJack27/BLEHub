@@ -1,5 +1,6 @@
 import pygatt
-
+import os
+import psutil
 '''
 Gateway that responsible for:
     - Discovering nearby bracelets based on MAC address
@@ -20,7 +21,7 @@ class Gateway:
 
         # Scanner for discovering devices
         self._scanner = pygatt.GATTToolBackend()
-        
+        self._scanner.reset()        
         # the sub-process function to raise when new deveice connected 
         self._sub_proc = sub_proc
 
@@ -44,11 +45,40 @@ class Gateway:
     #   - None
     def _update_mac_table(self, mac_addrs):
         mac_addr_list = [i['address'] for i in mac_addrs]
-        # remove old bracelets
-        for mac_addr in self._mac_proc_table.keys():
+        # remove and kill the process when the corresponding bracelet is not
+        # detected
+        removing = []
+        for mac_addr, pid in self._mac_proc_table.items():
             if mac_addr not in mac_addr_list:
                 # kill the process
-                pass
+                os.waitpid(pid, 0)
+                removing.append(mac_addr)
+                if(self._debug):
+                    print("Process (%s) is killed!"%pid)
+            else:
+                # Check if given process is running. Unregister from the
+                # mac_proc_table if so.
+                # Note that Zombie procee won't get killed in this stage
+                try:
+                    # man 2 kill. sig=0, send no signal but error checking
+                    os.kill(pid, 0)
+                except OSError:
+                    if(self._debug):
+                        print("Process (%s) is killed!"%pid)
+                    # unregister from the mac_proc_table
+                    removing.append(mac_addr)
+                    continue
+
+                # Check if given process is a zombie process
+                print(psutil.Process(pid).status() == psutil.STATUS_ZOMBIE)
+                if(psutil.Process(pid).status() == psutil.STATUS_ZOMBIE):
+                    os.waitpid(pid, 0)
+                    removing.append(mac_addr)
+                    if(self._debug):
+                        print("Process (%s) is killed!"%pid)
+
+        for addr in removing:
+            self._mac_proc_table.pop(addr)
 
         # add new bracelet 
         for mac_addr in mac_addr_list:
@@ -56,9 +86,17 @@ class Gateway:
             # new bracelet that haven't been detected yet.
             if valid_addr and mac_addr not in self._mac_proc_table.keys():
                 # raise a sub-process to receive the bluetooth data
-                print(mac_addr)
+                pid = os.fork()
                 
-    
+                if(pid == 0):
+                    # in sub-process
+                    self._sub_proc(mac_addr)
+                else:
+                    # in parent process
+                    # update self._mac_proc_table
+                    self._mac_proc_table[mac_addr] = pid
+        
+
     # Print and return the list of mac address of connected devices
     # Arguments:
     #   - None
@@ -89,7 +127,7 @@ class Gateway:
     #   - List<dictionary>
     def scan(self):
         return self._scanner.scan()
-
+    
 
     # The interface to start running the gateway
     # - Constantly discover the new devices
@@ -97,6 +135,7 @@ class Gateway:
     def run(self):
         while True:
             if(self._debug):
+                print("=============")
                 print("Scanning...")
                 self.getMacProTable()
             devices = self.scan()

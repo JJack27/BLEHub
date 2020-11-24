@@ -6,9 +6,13 @@ The BLE hub will act as a BLE client. Listening to GATT broadcasts.
 @last-update: 2020/11/23 12:18
 '''
 from gateway import Gateway
+import os
+import sys
+def sub_proc(mac_addr):
+    print("Initializing subprocess (%s) with mac address: %s" %
+            (os.getpid(), mac_addr))
+    quit()
 
-def sub_proc():
-    print("sub_proceess function")
 
 def main(*args):
     print("Starting Gateway...")
