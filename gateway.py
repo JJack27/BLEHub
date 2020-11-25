@@ -1,6 +1,8 @@
 import pygatt
+import bluepy.btle as btle
 import os
 import psutil
+import time
 '''
 Gateway that responsible for:
     - Discovering nearby bracelets based on MAC address
@@ -20,8 +22,8 @@ class Gateway:
         self._mac_proc_table = {}
 
         # Scanner for discovering devices
-        self._scanner = pygatt.GATTToolBackend()
-        self._scanner.reset()        
+        self._scanner = btle.Scanner()#pygatt.GATTToolBackend()
+        #self._scanner.reset()        
         # the sub-process function to raise when new deveice connected 
         self._sub_proc = sub_proc
 
@@ -44,7 +46,7 @@ class Gateway:
     # return:
     #   - None
     def _update_mac_table(self, mac_addrs):
-        mac_addr_list = [i['address'] for i in mac_addrs]
+        mac_addr_list = [i.addr for i in mac_addrs]
         # remove and kill the process when the corresponding bracelet is not
         # detected
         removing = []
@@ -70,7 +72,7 @@ class Gateway:
                     continue
 
                 # Check if given process is a zombie process
-                print(psutil.Process(pid).status() == psutil.STATUS_ZOMBIE)
+                # print(psutil.Process(pid).status() == psutil.STATUS_ZOMBIE)
                 if(psutil.Process(pid).status() == psutil.STATUS_ZOMBIE):
                     os.waitpid(pid, 0)
                     removing.append(mac_addr)
@@ -95,7 +97,7 @@ class Gateway:
                     # in parent process
                     # update self._mac_proc_table
                     self._mac_proc_table[mac_addr] = pid
-        
+                    time.sleep(10)
 
     # Print and return the list of mac address of connected devices
     # Arguments:
@@ -126,7 +128,7 @@ class Gateway:
     # Returns:
     #   - List<dictionary>
     def scan(self):
-        return self._scanner.scan()
+        return self._scanner.scan(1)
     
 
     # The interface to start running the gateway
