@@ -8,10 +8,24 @@ The BLE hub will act as a BLE client. Listening to GATT broadcasts.
 from gateway import Gateway
 import os
 import sys
+import pygatt
+
 def sub_proc(mac_addr):
-    print("Initializing subprocess (%s) with mac address: %s" %
+    adapter = pygatt.GATTToolBackend()
+
+    print("Initialized subprocess (%s) with mac address: %s" %
             (os.getpid(), mac_addr))
-    quit()
+    
+    try:
+        #adapter.start()
+        print("Adapter for %s started!"%mac_addr)
+    
+        #device = adapter.connect(mac_addr)
+        #print("Device (%s) is connected! Signal Strength = %d" % (mac_addr,
+        #    device.get_rssi()))
+    finally:
+        adapter.stop()
+        quit()
 
 
 def main(*args):
