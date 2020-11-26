@@ -14,20 +14,23 @@ class Gateway:
     # Constructor of the Gateway
     # Arguments:
     #   - sub_proc: the subprocess to raise when new devices connected
+    #   - between_scan: integer, the number of seconds that main process pauses before the next scan
     # Return:
     #   - Gateway
-    def __init__(self, sub_proc, debug=False):
+    def __init__(self, sub_proc, between_scan=10, debug=False):
         # maps mac address to pid of sub-process
         # with the format: {mac_address: pid}
         self._mac_proc_table = {}
 
         # Scanner for discovering devices
         self._scanner = pygatt.GATTToolBackend()
-        self._scanner.reset()        
+        self._scanner.reset()     
+
         # the sub-process function to raise when new deveice connected 
         self._sub_proc = sub_proc
 
         self._debug = debug
+        self._between_scan = between_scan
 
     # validate if the given mac address is a bracelet
     # Arugments:
@@ -97,14 +100,16 @@ class Gateway:
                     # in parent process
                     # update self._mac_proc_table
                     self._mac_proc_table[mac_addr] = pid
-                    time.sleep(10)
-                    #print("Main process wakes up")
+
+                    # Sleep for X seconds, then continue scanning. Default = 10
+                    time.sleep(self._between_scan)
+                    
     # Print and return the list of mac address of connected devices
     # Arguments:
     #   - None
     # Return:
     #   - list
-    def getConnectedDevice(self):
+    def get_connected_device(self):
         if(self._debug):
             for addr in self._mac_proc_table.keys():
                 print(addr)
@@ -115,7 +120,7 @@ class Gateway:
     #   - None
     # Return:
     #   - Dict
-    def getMacProTable(self):
+    def get_mac_proc_table(self):
         if(self._debug):
             for addr, pid in self._mac_proc_table.items():
                 print("%s %s"%(addr, pid))
@@ -140,7 +145,7 @@ class Gateway:
         while True:
             if(self._debug):
                 print("=============")
-                self.getMacProTable()
+                self.get_mac_proc_table()
             devices = self.scan()
             if(self._debug):
                 print("found %d devices" % len(devices))
