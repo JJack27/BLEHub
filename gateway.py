@@ -22,8 +22,8 @@ class Gateway:
         self._mac_proc_table = {}
 
         # Scanner for discovering devices
-        self._scanner = btle.Scanner()#pygatt.GATTToolBackend()
-        #self._scanner.reset()        
+        self._scanner = pygatt.GATTToolBackend()
+        self._scanner.reset()        
         # the sub-process function to raise when new deveice connected 
         self._sub_proc = sub_proc
 
@@ -46,7 +46,7 @@ class Gateway:
     # return:
     #   - None
     def _update_mac_table(self, mac_addrs):
-        mac_addr_list = [i.addr for i in mac_addrs]
+        mac_addr_list = [i['address'] for i in mac_addrs]
         # remove and kill the process when the corresponding bracelet is not
         # detected
         removing = []
@@ -92,13 +92,13 @@ class Gateway:
                 
                 if(pid == 0):
                     # in sub-process
-                    self._sub_proc(mac_addr)
+                    self._sub_proc(mac_addr, self._scanner)
                 else:
                     # in parent process
                     # update self._mac_proc_table
                     self._mac_proc_table[mac_addr] = pid
                     time.sleep(10)
-
+                    #print("Main process wakes up")
     # Print and return the list of mac address of connected devices
     # Arguments:
     #   - None
@@ -128,19 +128,21 @@ class Gateway:
     # Returns:
     #   - List<dictionary>
     def scan(self):
-        return self._scanner.scan(1)
+        print("Scanning...")
+        return self._scanner.scan()
     
 
     # The interface to start running the gateway
     # - Constantly discover the new devices
     # - update the self.mac_proc_table
     def run(self):
+        self._scanner.start()
         while True:
             if(self._debug):
                 print("=============")
-                print("Scanning...")
                 self.getMacProTable()
             devices = self.scan()
             if(self._debug):
                 print("found %d devices" % len(devices))
+            
             self._update_mac_table(devices)

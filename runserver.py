@@ -19,11 +19,11 @@ class MyDelegate(btle.DefaultDelegate):
 '''
     
 
-def sub_proc(mac_addr):
+def sub_proc(mac_addr, adapter):
 
     print("Initialized subprocess (%s) with mac address: %s" %
             (os.getpid(), mac_addr))
-    
+    print(adapter)
     try:
         #adapter.start()
         peripheral = btle.Peripheral(mac_addr, btle.ADDR_TYPE_RANDOM)
@@ -34,8 +34,8 @@ def sub_proc(mac_addr):
         chara = service.getCharacteristics('401dc6f1-3f8d-11e5-afbb-0002a5d5c51b')[0]
         
         while True:
-            #print("%s = %f" %(mac_addr, struct.unpack('f', chara.read())))
-            print(struct.unpack('f', chara.read()))
+            print("%s = %f" %(mac_addr, struct.unpack('f', chara.read())[0]))
+            #print(struct.unpack('f', chara.read()))
             #device = adapter.connect(mac_addr)
         #print("Device (%s) is connected! Signal Strength = %d" % (mac_addr,
         #    device.get_rssi()))
