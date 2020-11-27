@@ -1,8 +1,3 @@
-import pygatt
-import bluepy.btle as btle
-import os
-import psutil
-import time
 '''
 Gateway that responsible for:
     - Discovering nearby bracelets based on MAC address
@@ -10,6 +5,13 @@ Gateway that responsible for:
     - Maintain the list of MAC addresses
     - Keep tracking MAC address and raised subprocesses
 '''
+
+import pygatt
+import bluepy.btle as btle
+import os
+import psutil
+import time
+
 class Gateway:
     # Constructor of the Gateway
     # Arguments:
@@ -95,7 +97,7 @@ class Gateway:
                 
                 if(pid == 0):
                     # in sub-process
-                    self._sub_proc(mac_addr, self._scanner)
+                    self._sub_proc(mac_addr)
                 else:
                     # in parent process
                     # update self._mac_proc_table
