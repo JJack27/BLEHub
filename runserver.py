@@ -10,7 +10,7 @@ from sub_process import sub_proc
 
 def main(*args):
     print("Starting Gateway...")
-    gateway = Gateway(sub_proc, True)
+    gateway = Gateway(sub_proc, debug=True)
     gateway.run()
     
 if __name__ == '__main__':
