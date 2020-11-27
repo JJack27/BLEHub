@@ -19,7 +19,7 @@ class Gateway:
     #   - between_scan: integer, the number of seconds that main process pauses before the next scan
     # Return:
     #   - Gateway
-    def __init__(self, sub_proc, between_scan=10, debug=False):
+    def __init__(self, sub_proc, between_scan=5, debug=False):
         # maps mac address to pid of sub-process
         # with the format: {mac_address: pid}
         self._mac_proc_table = {}
@@ -51,18 +51,23 @@ class Gateway:
     # return:
     #   - None
     def _update_mac_table(self, mac_addrs):
+        print("Updating table! between_scan=%d"%self._between_scan)
         mac_addr_list = [i['address'] for i in mac_addrs]
         # remove and kill the process when the corresponding bracelet is not
         # detected
         removing = []
         for mac_addr, pid in self._mac_proc_table.items():
             if mac_addr not in mac_addr_list:
+                pass
+                #print("not in list")
                 # kill the process
-                os.waitpid(pid, 0)
-                removing.append(mac_addr)
-                if(self._debug):
-                    print("Process (%s) is killed!"%pid)
+                #os.waitpid(pid, 0)
+                #removing.append(mac_addr)
+                #if(self._debug):
+                #    print("Process (%s) is killed!"%pid)
             else:
+                print("checking zombie")
+                '''
                 # Check if given process is running. Unregister from the
                 # mac_proc_table if so.
                 # Note that Zombie procee won't get killed in this stage
@@ -75,7 +80,8 @@ class Gateway:
                     # unregister from the mac_proc_table
                     removing.append(mac_addr)
                     continue
-
+                print("running")
+                '''
                 # Check if given process is a zombie process
                 # print(psutil.Process(pid).status() == psutil.STATUS_ZOMBIE)
                 if(psutil.Process(pid).status() == psutil.STATUS_ZOMBIE):
@@ -83,15 +89,19 @@ class Gateway:
                     removing.append(mac_addr)
                     if(self._debug):
                         print("Process (%s) is killed!"%pid)
-
+        print("Removing %d peripherals." % len(removing))
         for addr in removing:
             self._mac_proc_table.pop(addr)
-
+        
+        print("adding bracelet")
+        added = 0
         # add new bracelet 
         for mac_addr in mac_addr_list:
             valid_addr = self._validate_mac_addr(mac_addr)
             # new bracelet that haven't been detected yet.
             if valid_addr and mac_addr not in self._mac_proc_table.keys():
+                added += 1
+                print("founded: %s"%mac_addr)
                 # raise a sub-process to receive the bluetooth data
                 pid = os.fork()
                 
@@ -102,9 +112,15 @@ class Gateway:
                     # in parent process
                     # update self._mac_proc_table
                     self._mac_proc_table[mac_addr] = pid
-
+        
                     # Sleep for X seconds, then continue scanning. Default = 10
-                    time.sleep(self._between_scan)
+        
+        print("preparing for scanning")
+        counter = 0
+        while counter < self._between_scan:
+            time.sleep(1)
+            counter += 1
+            print(counter)
                     
     # Print and return the list of mac address of connected devices
     # Arguments:

@@ -8,7 +8,7 @@ Function run as a sub process
 import os
 import struct
 import bluepy.btle as btle
-
+import time
 # The sub-process to be raised after a new device is connected
 def sub_proc(mac_addr, debug=False):
     if(debug):
@@ -24,7 +24,7 @@ def sub_proc(mac_addr, debug=False):
         chara = service.getCharacteristics('401dc6f1-3f8d-11e5-afbb-0002a5d5c51b')[0]
         
         while True:
-
+            time.sleep(0.1)
             print("%s = %f" %(mac_addr, struct.unpack('f', chara.read())[0]))
             
 
