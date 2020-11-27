@@ -84,7 +84,7 @@ class Gateway:
                     self._mac_proc_table[mac_addr] = pid
         
                     # Sleep for X seconds, then continue scanning. Default = 10
-        sleep(self._between_scan)
+        time.sleep(self._between_scan)
                     
     # Print and return the list of mac address of connected devices
     # Arguments:
