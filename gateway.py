@@ -33,7 +33,8 @@ class Gateway:
 
         self._debug = debug
         self._between_scan = between_scan
-
+        self._total_rounds = 0
+        self._broke_rounds = 0
     # validate if the given mac address is a bracelet
     # Arugments:
     #   - mac_addr: string, mac address
@@ -51,6 +52,8 @@ class Gateway:
     # return:
     #   - None
     def _update_mac_table(self, mac_addrs):
+        self._total_rounds += 1
+
         mac_addr_list = [i['address'] for i in mac_addrs]
         # remove and kill the process when the corresponding bracelet is not detected
         removing = []
@@ -58,11 +61,20 @@ class Gateway:
             # Check if given process is a zombie process
             # print(psutil.Process(pid).status() == psutil.STATUS_ZOMBIE)
             if(psutil.Process(pid).status() == psutil.STATUS_ZOMBIE):
+                
                 os.waitpid(pid, 0)
                 removing.append(mac_addr)
                 if(self._debug):
                     print("Process (%s) is killed!"%pid)
+        if(len(removing) > 0):
+            self._broke_rounds += 1
 
+        if(self._debug):
+            print("Round %d, %s. (%d/%d, %f)" %
+            (self._total_rounds, str(bool(len(removing))), 
+            self._total_rounds, self._broke_rounds,
+            self._total_rounds / self._broke_rounds))
+        
         for addr in removing:
             self._mac_proc_table.pop(addr)
         
@@ -83,7 +95,8 @@ class Gateway:
                     # update self._mac_proc_table
                     self._mac_proc_table[mac_addr] = pid
         
-                    # Sleep for X seconds, then continue scanning. Default = 10
+        
+        # Sleep for X seconds, then continue scanning. Default = 10
         time.sleep(self._between_scan)
                     
     # Print and return the list of mac address of connected devices
