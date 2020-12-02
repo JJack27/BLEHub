@@ -11,7 +11,7 @@ import bluepy.btle as btle
 import os
 import psutil
 import time
-
+from multiprocessing import Process, Event
 class Gateway:
     # Constructor of the Gateway
     # Arguments:
@@ -25,8 +25,9 @@ class Gateway:
         self._mac_proc_table = {}
 
         # Scanner for discovering devices
-        self._scanner = pygatt.GATTToolBackend()
-        self._scanner.reset()     
+        # self._scanner = pygatt.GATTToolBackend()
+        # self._scanner.reset()     
+        self._scanner = btle.Scanner()
 
         # the sub-process function to raise when new deveice connected 
         self._sub_proc = sub_proc
@@ -72,7 +73,9 @@ class Gateway:
             valid_addr = self._validate_mac_addr(mac_addr)
             # new bracelet that haven't been detected yet.
             if valid_addr and mac_addr not in self._mac_proc_table.keys():
-                # raise a sub-process to receive the bluetooth data
+                # raise a thread to receive the bluetooth data
+                
+                '''
                 pid = os.fork()
                 
                 if(pid == 0):
@@ -84,6 +87,7 @@ class Gateway:
                     self._mac_proc_table[mac_addr] = pid
         
                     # Sleep for X seconds, then continue scanning. Default = 10
+                '''
         time.sleep(self._between_scan)
                     
     # Print and return the list of mac address of connected devices
