@@ -8,7 +8,7 @@ Gateway that responsible for:
 
 import pygatt
 import bluepy.btle as btle
-import os
+import multiprocessing
 import psutil
 import time
 from multiprocessing import Process, Event
@@ -57,13 +57,20 @@ class Gateway:
         removing = []
         for mac_addr, pid in self._mac_proc_table.items():
             # Check if given process is a zombie process
+            '''
             # print(psutil.Process(pid).status() == psutil.STATUS_ZOMBIE)
             if(psutil.Process(pid).status() == psutil.STATUS_ZOMBIE):
                 os.waitpid(pid, 0)
                 removing.append(mac_addr)
                 if(self._debug):
                     print("Process (%s) is killed!"%pid)
-
+            '''
+            if(not pid.is_alive()):
+                pid.terminate()
+                pid.join()
+                removing.append(mac_addr)
+                if(self._debug):
+                    print("Process (%s) is killed!"%pid)
         for addr in removing:
             self._mac_proc_table.pop(addr)
         
@@ -73,21 +80,10 @@ class Gateway:
             valid_addr = self._validate_mac_addr(mac_addr)
             # new bracelet that haven't been detected yet.
             if valid_addr and mac_addr not in self._mac_proc_table.keys():
-                # raise a thread to receive the bluetooth data
-                
-                '''
-                pid = os.fork()
-                
-                if(pid == 0):
-                    # in sub-process
-                    self._sub_proc(mac_addr)
-                else:
-                    # in parent process
-                    # update self._mac_proc_table
-                    self._mac_proc_table[mac_addr] = pid
-        
-                    # Sleep for X seconds, then continue scanning. Default = 10
-                '''
+                # raise a sub-process to receive the bluetooth data
+                proc = multiprocessing.Process(target=self._sub_proc, args=(mac_addr))
+                self._mac_proc_table[mac_addr] = proc
+                self._mac_proc_table[mac_addr].start()
         time.sleep(self._between_scan)
                     
     # Print and return the list of mac address of connected devices
@@ -120,7 +116,7 @@ class Gateway:
     #   - List<dictionary>
     def scan(self):
         print("Scanning...")
-        return self._scanner.scan()
+        return self._scanner.scan(5.0)
     
 
     # The interface to start running the gateway
