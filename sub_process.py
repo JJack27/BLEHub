@@ -21,9 +21,9 @@ def sub_proc(mac_addr, debug=False):
         print("Device (%s) connected! " % mac_addr)
          
         # TODO: Need to customize the service and characteristics
-        service = peripheral.getServiceByUUID('49535343-fe7d-4ae5-8fa9-9fafd205e455')
-        chara =    service.getCharacteristics('49535343-1e4d-4bd9-ba61-23c647249616')
+        service = peripheral.getServiceByUUID("49535343-fe7d-4ae5-8fa9-9fafd205e455")
         print(service)
+        chara =    service.getCharacteristics("49535343-1e4d-4bd9-ba61-23c647249616")
         print(chara)
         with open("result.csv", "w") as f:
             while True:
