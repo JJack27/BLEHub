@@ -40,8 +40,9 @@ class Gateway:
     # Return:
     #   - bool
     def _validate_mac_addr(self, mac_addr):
-        test_mac_addr = ['c7:36:e0:31:ab:ae']
-        if (self._debug and mac_addr.lower() in test_mac_addr):
+        test_mac_addr = ['66:55:44:33:22:11']
+        if ( mac_addr.lower() in test_mac_addr):
+            print("Found!")
             return True
 
     # update self._mac_proc_table
@@ -128,8 +129,10 @@ class Gateway:
             if(self._debug):
                 print("=============")
                 self.get_mac_proc_table()
-            devices = self.scan()
+            if(self._mac_proc_table == {}):
+                devices = self.scan()
+                self._update_mac_table(devices)
             if(self._debug):
                 print("found %d devices" % len(devices))
             
-            self._update_mac_table(devices)
+            #self._update_mac_table(devices)

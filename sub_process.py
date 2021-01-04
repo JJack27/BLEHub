@@ -11,25 +11,28 @@ import bluepy.btle as btle
 import time
 # The sub-process to be raised after a new device is connected
 def sub_proc(mac_addr, debug=False):
-    if(debug):
-        print("Initializing subprocess (%s) with mac address: %s" % (os.getpid(), mac_addr))
-    try:
-        peripheral = btle.Peripheral(mac_addr, btle.ADDR_TYPE_RANDOM)
+    
+    print("Initializing subprocess (%s) with mac address: %s" % (os.getpid(), mac_addr))
+    #try:
+    if(True):
+        peripheral = btle.Peripheral(mac_addr, btle.ADDR_TYPE_PUBLIC)
         
-        if(debug):
-            print("Device (mac_addr) connected! " % mac_addr)
-        
+    
+        print("Device (%s) connected! " % mac_addr)
+         
         # TODO: Need to customize the service and characteristics
-        service = peripheral.getServiceByUUID('401dc6f0-3f8d-11e5-afbb-0002a5d5c51b')
-        chara = service.getCharacteristics('401dc6f1-3f8d-11e5-afbb-0002a5d5c51b')[0]
-        
-        while True:
-            time.sleep(0.1)
-            print("%s = %f" %(mac_addr, struct.unpack('f', chara.read())[0]))
-            
-
-    except Exception as e:
-        print("Error from sub-process: ", end="")
-        print(e)
-    finally:
+        service = peripheral.getServiceByUUID('49535343-fe7d-4ae5-8fa9-9fafd205e455')
+        chara =    service.getCharacteristics('49535343-1e4d-4bd9-ba61-23c647249616')
+        print(service)
+        print(chara)
+        with open("result.csv", "w") as f:
+            while True:
+                time.sleep(0.1)
+                #print("%s = %f" %(mac_addr, struct.unpack('f', chara.read())[0]))
+                print(struct.unpack('i', chara.read()))
+                #f.writeline(str(chara.read()))
+    #except Exception as e:
+    #    print("Error from sub-process: ", end="")
+    #    print(e)
+    else:
         quit()
